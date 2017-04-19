@@ -59,3 +59,8 @@ class DragAndDrop : MonoBehaviour {
         }
     }
 }
+/*
+** il faut récupérer this_piece.
+** il nous faut une position pour la getClosestSquare()
+** il faut faire appel à this_piece.movePiece(closest_square);
+*/

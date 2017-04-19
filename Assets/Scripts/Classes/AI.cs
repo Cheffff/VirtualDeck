@@ -21,10 +21,19 @@ public class AI : MonoBehaviour {
         List<Square> hovered_squares = null;
         do // tant qu'on a pas réussi à récupérer une piece, on "rerandomise" la piece à sélectionner. Ici, on pourra se débarasser de cette boucle lorsqu'on implémentera la vrai ia; il ne faudra cependant pas oublier de vérifier le CHECK_MATE. 
         {  // J'ai fais cette boucle car il pouvait arriver que la pièce sélectionnée ait déjà été bouffée
-            randPiece = UnityEngine.Random.Range(16, board.getPiecesCount());
+            if (board.black_ai)
+            {
+                randPiece = UnityEngine.Random.Range(board.firstBlackPieceIndex(), board.getPiecesCount());
+                print("first black piece index = " + board.firstBlackPieceIndex());
+            }
+            else
+            {
+                randPiece = UnityEngine.Random.Range(0, board.firstBlackPieceIndex());
+                print("first black piece index = " + board.firstBlackPieceIndex());
+            }
             if (board.isCheckMate(1))
             {
-                print("CHECK MATE");
+                //                print("CHECK MATE");
                 return (1);
             }
             selectedPiece = board.getPiece(randPiece);
@@ -37,13 +46,13 @@ public class AI : MonoBehaviour {
             randSquare = UnityEngine.Random.Range(2, hovered_squares.Count);
             if (randSquare >= hovered_squares.Count)
             {
-                print("ransSquare >= hovered_squares.Count || hovered_squares.Count == 1");
+//                print("ransSquare >= hovered_squares.Count || hovered_squares.Count == 1");
                 return (0);
             }
             else
             {
-                print(selectedPiece + " is at " + selectedPiece.cur_square.coor.pos + " and is to be moved to " + hovered_squares[randSquare].coor.pos);
-                print(randSquare + " is the number of the square we are looking for");
+ //               print(selectedPiece + " is at " + selectedPiece.cur_square.coor.pos + " and is to be moved to " + hovered_squares[randSquare].coor.pos);
+  //              print(randSquare + " is the number of the square we are looking for");
                 selectedSquare = hovered_squares[randSquare];
                 return (board.AITurn(selectedPiece, selectedSquare));
             }
