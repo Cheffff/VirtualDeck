@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 using System;
 
 /*
@@ -20,7 +21,8 @@ public class Board : MonoBehaviour {
     // UI variables
     public bool use_hover; // Hover valid moves & closest square
     public bool rotate_camera; // Enable/disable camera rotation
-    public bool can_ai_play;
+    public bool white_ai;
+    public bool black_ai;
 
     [SerializeField]
     MainCamera main_camera;
@@ -58,12 +60,17 @@ public class Board : MonoBehaviour {
         setStartPiecesCoor(); // Update all piece's coordinate
         artificial_intelligence = gameObject.AddComponent<AI>();
     }
+    private void Update()
+    {
+        if (cur_turn == -1 && white_ai || cur_turn == 1 && black_ai)
+            changeTurn();
+    }
 
     /*
     ---------------
     Squares related functions
     ---------------
-    */ 
+    */
     // Returns closest square to the given position
     public Square getClosestSquare(Vector3 pos) {
         Square square = squares[0];
@@ -118,7 +125,15 @@ public class Board : MonoBehaviour {
         closest_square.resetMaterial();
         closest_square = null;
     }
-
+    public int firstBlackPieceIndex()
+    {
+        for (int i = 0; i < pieces.Count; i++)
+        {
+            if (pieces[i].name.Contains("Black"))
+                return (i);
+        }
+        return (-1);
+    }
     // If the king is trying to castle with a tower, we'll check if an enemy piece is targeting any square
     // between the king and the castling tower
     public bool checkCastlingSquares(Square square1, Square square2, int castling_team) {
@@ -147,7 +162,6 @@ public class Board : MonoBehaviour {
         
         return true;
     }
-
     // Set start square's local coordinates & its current position
     private void addSquareCoordinates() {
         int coor_x = 0;
@@ -270,11 +284,10 @@ public class Board : MonoBehaviour {
     // Change current turn, we check if a team lost before rotating the camera
     public void changeTurn() {
         cur_turn = (cur_turn == -1) ? 1 : -1;
-        if (can_ai_play)
-            print("ON TRUE");
-        if (cur_turn == 1 && can_ai_play)
+        if ((cur_turn == -1 && white_ai) || (cur_turn == 1 && black_ai))
         {
-            print("AI TURN");
+            new WaitForSeconds(2.5f);
+//            print("AI TURN");
             int valid = 0;
             do // Ici, tu pourras faire appel à ta fonction (a la place de fakeAITurn), faudra renvoyer le retour de fakeAITurn.
             { // De cette façon, même si ton ia se gourre dans la pièce à sélectionner, on a quand même un garde fou.
@@ -285,7 +298,7 @@ public class Board : MonoBehaviour {
         {
             doCheckMate(cur_turn);
         } // A partir de là, je me posais la question de savoir si on simulait vraiment un joueur qui déplace la pièce et tout. En mode on simule le mouvement de la souris... faudra voir        
-        else if (rotate_camera && !can_ai_play)
+        else if (rotate_camera && !((cur_turn == -1 && white_ai) || (cur_turn == 1 && black_ai)))
         {
             main_camera.changeTeam(cur_turn);
         }
@@ -336,9 +349,32 @@ public class Board : MonoBehaviour {
     {
         return this.hovered_squares;
     }
-    public void canAiPlay(bool aiPlay)
+    private void checkToggles(bool aiPlay, bool ai, string toggleName)
     {
-        can_ai_play = aiPlay;
+        if (aiPlay == true && ai == true)
+        {
+            GameObject toggle;
+
+            toggle = GameObject.Find(toggleName);
+            if (toggle != null)
+                toggle.GetComponent<Toggle>().isOn = false;
+            else
+                print("Wrong toggle " + toggleName);
+        }
+        else
+            print("aiPlay == " + aiPlay + " and ai == " + ai);
+    }
+    public void whiteAiPlay(bool aiPlay)
+    {
+        print("ready to check black ai");
+        checkToggles(aiPlay, black_ai, "Toggle ai black");
+        white_ai = aiPlay;
+    }
+    public void blackAiPlay(bool aiPlay)
+    {
+        print("ready to check white ai");
+        checkToggles(aiPlay, white_ai, "Toggle ai white");
+        black_ai = aiPlay;
     }
     public Piece getPiece(int pid)
     {
