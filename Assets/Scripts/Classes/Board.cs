@@ -12,6 +12,7 @@ public class Board : MonoBehaviour {
     private List<Square> hovered_squares = new List<Square>(); // List squares to hover
     private Square closest_square; // Current closest square when dragging a piece
     private int cur_theme = 0;
+    private AI artificial_intelligence;
 
     public int cur_turn = -1; // -1 = whites; 1 = blacks
     public Dictionary<int, Piece> checking_pieces = new Dictionary<int, Piece>(); // Which piece is checking the king (key = team)
@@ -19,6 +20,7 @@ public class Board : MonoBehaviour {
     // UI variables
     public bool use_hover; // Hover valid moves & closest square
     public bool rotate_camera; // Enable/disable camera rotation
+    public bool can_ai_play;
 
     [SerializeField]
     MainCamera main_camera;
@@ -49,11 +51,12 @@ public class Board : MonoBehaviour {
 
     [SerializeField]
     List<Piece> pieces = new List<Piece>(); // List of all pieces in the game (32)
-
+    
     void Start() {
         setBoardTheme();
         addSquareCoordinates(); // Add "local" coordinates to all squares
         setStartPiecesCoor(); // Update all piece's coordinate
+        artificial_intelligence = gameObject.AddComponent<AI>();
     }
 
     /*
@@ -267,12 +270,40 @@ public class Board : MonoBehaviour {
     // Change current turn, we check if a team lost before rotating the camera
     public void changeTurn() {
         cur_turn = (cur_turn == -1) ? 1 : -1;
-        if (isCheckMate(cur_turn)) {
-            doCheckMate(cur_turn);
+        if (can_ai_play)
+            print("ON TRUE");
+        if (cur_turn == 1 && can_ai_play)
+        {
+            print("AI TURN");
+            int valid = 0;
+            do // Ici, tu pourras faire appel à ta fonction (a la place de fakeAITurn), faudra renvoyer le retour de fakeAITurn.
+            { // De cette façon, même si ton ia se gourre dans la pièce à sélectionner, on a quand même un garde fou.
+                valid = artificial_intelligence.calculateAITurn(this); // Ton ia devra bien entendu faire appel a FakeAITurn, en lui passant en parametre la piece à déplacer + le square ou tu veux la déplacer.
+            } while (valid == 0);
         }
-        else if(rotate_camera) {
+        if (isCheckMate(cur_turn))
+        {
+            doCheckMate(cur_turn);
+        } // A partir de là, je me posais la question de savoir si on simulait vraiment un joueur qui déplace la pièce et tout. En mode on simule le mouvement de la souris... faudra voir        
+        else if (rotate_camera && !can_ai_play)
+        {
             main_camera.changeTeam(cur_turn);
         }
+    }
+    public int AITurn(Piece selectedPiece, Square selectedSquare)
+    {
+        if (selectedPiece == null)
+            return (0);
+        if (isCheckMate(1))
+            return (1);
+        if (hovered_squares.Count > 1)
+        {
+            if (!selectedPiece.checkValidMove(selectedSquare))
+                return (0);
+            selectedPiece.movePiece(selectedSquare);
+            return (hovered_squares.Count);
+        }
+        return (0);
     }
 
     // Show check mate message
@@ -294,18 +325,31 @@ public class Board : MonoBehaviour {
     public void useHover(bool use) {
         use_hover = use;
     }
-
     public void rotateCamera(bool rotate) {
         rotate_camera = rotate;
     }
-
+    public int getPiecesCount()
+    {
+        return (pieces.Count);
+    }
+    public List<Square> getHoveredSquares()
+    {
+        return this.hovered_squares;
+    }
+    public void canAiPlay(bool aiPlay)
+    {
+        can_ai_play = aiPlay;
+    }
+    public Piece getPiece(int pid)
+    {
+        return (pieces[pid]);
+    }
     public void setBoardTheme() {
         for (int i = 0; i < board_sides.Count ; i++) {
             board_sides[i].material = themes[cur_theme].board_side;
             board_corners[i].material = themes[cur_theme].board_corner;
         }
     }
-
     public void updateGameTheme(int theme) {
         cur_theme = theme;
         setBoardTheme();
