@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using System;
+using UnityEngine.SceneManagement;
 
 /*
 ==============================
@@ -53,7 +54,7 @@ public class Board : MonoBehaviour {
 
     [SerializeField]
     List<Piece> pieces = new List<Piece>(); // List of all pieces in the game (32)
-    
+
     void Start() {
         setBoardTheme();
         addSquareCoordinates(); // Add "local" coordinates to all squares
@@ -385,6 +386,10 @@ public class Board : MonoBehaviour {
             board_sides[i].material = themes[cur_theme].board_side;
             board_corners[i].material = themes[cur_theme].board_corner;
         }
+    }
+    public void resetGame()
+    {
+        SceneManager.LoadScene(0);
     }
     public void updateGameTheme(int theme) {
         cur_theme = theme;
